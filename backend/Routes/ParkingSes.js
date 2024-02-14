@@ -1,3 +1,4 @@
+// ParkingSes.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
@@ -10,7 +11,16 @@ module.exports = (db, secretKey) => {
     router.post('/park', async (req, res) => {
         try {
             const { plateNumber, vehicleType } = req.body;
-            const cost = vehicleType === 'motorcycle' ? 20.00 : 40.00;
+            let cost;
+            if (vehicleType === 'motorcycle') {
+                cost = 20.00;
+            } else if (vehicleType === 'car') {
+                cost = 40.00;
+            } else if (vehicleType === 'e-bike') { // New condition for e-bikes
+                cost = 30.00;
+            } else {
+                return res.status(400).json({ error: 'Invalid vehicle type' });
+            }
             const parkingNumber = await getNextParkingNumber(db);
             
             const insertParkingSessionQuery = 'INSERT INTO parking_sessions (license_plate_number, parking_number, vehicle_type, cost) VALUES (?, ?, ?, ?)';
@@ -36,4 +46,3 @@ module.exports = (db, secretKey) => {
     
     return router;
 };
-

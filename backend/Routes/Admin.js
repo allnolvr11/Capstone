@@ -40,7 +40,7 @@ module.exports = (db, secretKey) => {
                 return res.status(401).json({ error: 'Invalid username or password' });
             }
             
-            const token = jwt.sign({ userId: user.id, username: user.username }, secretKey, { expiresIn: '5h' });
+            const token = jwt.sign({ userId: user.admin_id, username: user.username }, secretKey, { expiresIn: '5h' });
             
             res.status(200).json({ token });
         } catch (error) {

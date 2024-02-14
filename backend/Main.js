@@ -11,7 +11,7 @@ const secretKey = config.secretKey;
 
 app.use(bodyParser.json());
 
-const adminRoute = require('./Routes/admin')(db, secretKey);
+const adminRoute = require('./Routes/Admin')(db, secretKey);
 const parkingSesRoute = require('./Routes/ParkingSes')(db, secretKey);
 const receiptRoute = require('./Routes/reciept')(db, secretKey);
 const receiptRetrievalRoute = require('./Routes/recieptRetrival')(db, secretKey);
