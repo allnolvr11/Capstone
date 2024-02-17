@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 const AuthToken = require('../middleware/AuthToken');
 
-module.exports = (db, secretKey) => {
+module.exports = (pool, secretKey) => {
     
     router.post('/register', async (req, res) => {
         try {
@@ -13,7 +13,7 @@ module.exports = (db, secretKey) => {
             const hashedPassword = await bcrypt.hash(password, 10);
             
             const insertUserQuery = 'INSERT INTO admins (name, username, password) VALUES (?, ?, ?)';
-            await db.promise().execute(insertUserQuery, [name, username, hashedPassword]);
+            await pool.promise().execute(insertUserQuery, [name, username, hashedPassword]);
             
             res.status(201).json({ message: 'User Registered successfully' });
         } catch (error) {
@@ -27,7 +27,7 @@ module.exports = (db, secretKey) => {
             const { username, password } = req.body;
             
             const getUserQuery = 'SELECT * FROM admins WHERE username = ?';
-            const [rows] = await db.promise().execute(getUserQuery, [username]);
+            const [rows] = await pool.promise().execute(getUserQuery, [username]);
             
             if (rows.length === 0) {
                 return res.status(401).json({ error: 'Invalid username or password' });
@@ -40,7 +40,7 @@ module.exports = (db, secretKey) => {
                 return res.status(401).json({ error: 'Invalid username or password' });
             }
             
-            const token = jwt.sign({ userId: user.id, username: user.username }, secretKey, { expiresIn: '5h' });
+            const token = jwt.sign({ userId: user.admin_id, username: user.username }, secretKey, { expiresIn: '5h' });
             
             res.status(200).json({ token });
         } catch (error) {
@@ -51,7 +51,7 @@ module.exports = (db, secretKey) => {
 
     router.get('/admins',  (req, res) => {
         try {
-            db.query('SELECT * FROM admins', (err, result) => {
+            pool.query('SELECT * FROM admins', (err, result) => {
                 if (err) {
                     console.error('Error fetching admins: ', err);
                     res.status(500).json({ message: 'Internal Server Error' });
@@ -73,7 +73,7 @@ module.exports = (db, secretKey) => {
         }
         
         try {
-            db.query('SELECT * FROM admins WHERE admin_id = ?', adminId, (err, result) => {
+            pool.query('SELECT * FROM admins WHERE admin_id = ?', adminId, (err, result) => {
                 if (err) {
                     console.error('Error fetching admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
@@ -98,7 +98,7 @@ module.exports = (db, secretKey) => {
         }
         
         try {
-            db.query('UPDATE admins SET name = ?, username = ?, password = ? WHERE admin_id = ?', [name, username, hashedPassword, adminId], (err, result) => {
+            pool.query('UPDATE admins SET name = ?, username = ?, password = ? WHERE admin_id = ?', [name, username, hashedPassword, adminId], (err, result) => {
                 if (err) {
                     console.error('Error updating admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
@@ -121,7 +121,7 @@ module.exports = (db, secretKey) => {
         }
         
         try {
-            db.query('DELETE FROM admins WHERE admin_id = ?', adminId, (err, result) => {
+            pool.query('DELETE FROM admins WHERE admin_id = ?', adminId, (err, result) => {
                 if (err) {
                     console.error('Error deleting admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });

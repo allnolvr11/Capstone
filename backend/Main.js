@@ -5,17 +5,17 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const db = require('./Database/database');
+const pool = require('./Database/database');
 const config = require('./config/config');
 const secretKey = config.secretKey;
 
 app.use(bodyParser.json());
 
-const adminRoute = require('./Routes/admin')(db, secretKey);
-const parkingSesRoute = require('./Routes/ParkingSes')(db, secretKey);
-const receiptRoute = require('./Routes/reciept')(db, secretKey);
-const receiptRetrievalRoute = require('./Routes/recieptRetrival')(db, secretKey);
-const parkedVehiclesRoute = require('./Routes/parkedVehicle')(db, secretKey);
+const adminRoute = require('./Routes/Admin')(pool, secretKey);
+const parkingSesRoute = require('./Routes/ParkingSes')(pool, secretKey);
+const receiptRoute = require('./Routes/reciept')(pool, secretKey);
+const receiptRetrievalRoute = require('./Routes/recieptRetrival')(pool, secretKey);
+const parkedVehiclesRoute = require('./Routes/parkedVehicle')(pool, secretKey);
 
 app.use("/api", adminRoute);
 app.use("/api/parkingSession", parkingSesRoute);

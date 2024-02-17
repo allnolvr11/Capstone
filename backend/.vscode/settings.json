@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": false,
+                    "requestCert": true
+                }
+            },
+            "previewLimit": 50,
+            "server": "dpg-cn5hjltjm4es73dnj7n0-a.oregon-postgres.render.com",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Capstone",
+            "database": "pakingdb",
+            "username": "pakingdb_user"
+        }
+    ]
+}
