@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const AuthToken = require('../middleware/AuthToken');
 
-module.exports = (db, secretKey) => {
+module.exports = (pool, secretKey) => {
     
     router.post('/park', async (req, res) => {
         try {
@@ -21,10 +21,10 @@ module.exports = (db, secretKey) => {
             } else {
                 return res.status(400).json({ error: 'Invalid vehicle type' });
             }
-            const parkingNumber = await getNextParkingNumber(db);
+            const parkingNumber = await getNextParkingNumber(pool);
             
             const insertParkingSessionQuery = 'INSERT INTO parking_sessions (license_plate_number, parking_number, vehicle_type, cost) VALUES (?, ?, ?, ?)';
-            await db.promise().execute(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
+            await pool.promise().execute(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
             
             res.status(201).json({ message: 'Parking session created successfully', parkingNumber });
         } catch (error) {
@@ -33,10 +33,10 @@ module.exports = (db, secretKey) => {
         }
     });
 
-    async function getNextParkingNumber(db) {
+    async function getNextParkingNumber(pool) {
         try {
             const selectMaxParkingNumberQuery = 'SELECT COALESCE(MAX(parking_number), 0) + 1 AS nextParkingNumber FROM parking_sessions';
-            const result = await db.promise().execute(selectMaxParkingNumberQuery);
+            const result = await pool.promise().execute(selectMaxParkingNumberQuery);
             return result[0][0].nextParkingNumber;
         } catch (error) {
             throw error;

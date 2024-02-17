@@ -1,19 +1,21 @@
 const { Pool } = require('pg');
 
-const db = new Pool({
-    host: 'dpg-cn5hjltjm4es73dnj7no-a',
-    port: 5432,
-    user: 'pakingdb_user',
-    password: 'rKhWQG09+ECTNyHguajkUtgLk6bdhnqK',
-    database: 'pakingdb',
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to PostgreSQL:', err);
-    } else {
-        console.log('Connected to PostgreSQL');
+const pool = new Pool({
+    connectionString: 'postgres://pakingdb_user:rKhWQGO9tECTNnyHguakUtgLK6bdnngK@dpg-cn5hjltjm4es73dnj7n0-a.oregon-postgres.render.com/pakingdb',
+    ssl: {
+        rejectUnauthorized: false
     }
 });
 
-module.exports = db;
+pool.connect((err, client, release) => {
+    if (err) {
+        return console.error('Error acquiring client', err.stack);
+    }
+    console.log('Connected to PostgresSQL database');
+
+    // Perform database operations here
+
+    release(); // release the client back to the pool
+});
+
+module.exports = pool;
