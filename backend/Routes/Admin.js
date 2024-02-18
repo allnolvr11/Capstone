@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const AuthToken = require('../middleware/AuthToken');
@@ -10,7 +10,7 @@ module.exports = (pool, secretKey) => {
     router.post('/register', async (req, res) => {
         try {
             const { name, username, password } = req.body;
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await bcryptjs.hash(password, 10);
             
             const insertUserQuery = 'INSERT INTO admins (name, username, password) VALUES ($1, $2, $3)';
             await pool.query(insertUserQuery, [name, username, hashedPassword]);
@@ -34,7 +34,7 @@ module.exports = (pool, secretKey) => {
             }
             
             const user = rows[0];
-            const passwordMatch = await bcrypt.compare(password, user.password);
+            const passwordMatch = await bcryptjs.compare(password, user.password);
             
             if (!passwordMatch) {
                 return res.status(401).json({ error: 'Invalid username or password' });
@@ -89,7 +89,7 @@ module.exports = (pool, secretKey) => {
     router.put('/admins/:id', async (req, res) => {
         const adminId = req.params.id;
         const { name, username, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcryptjs.hash(password, 10);
         
         if (!adminId || !name || !username || !hashedPassword) {
             return res.status(400).json({ error: true, message: 'Provide all necessary information' });
