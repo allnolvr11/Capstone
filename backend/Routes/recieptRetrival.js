@@ -11,7 +11,7 @@ module.exports = (pool, secretKey) => {
         }
     
         try {
-            const result = await pool.query('SELECT plate_number, session_id, receipt_id, request_id FROM parking_sessions WHERE plate_number = $1', [plateNumber]);
+            const result = await pool.query('SELECT plate_number, parking_session_id, receipt_id, parking_date, cost FROM receipts WHERE plate_number = $1', [plateNumber]);
             if (result.rows.length === 0) {
                 return res.status(404).json({ message: 'No parking session found for the provided plate number' });
             }
