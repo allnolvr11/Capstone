@@ -4,8 +4,8 @@
   "description": "",
   "main": "Main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon ./Main/js"
+    "start": "node Main.js",
+    "dev": "nodemon Main.js"
   },
   "keywords": [],
   "author": "",
