@@ -4,7 +4,7 @@ const router = express.Router();
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    router.post('/retrieveSession', async (req, res) => {
+    router.post('/retrieveReceipt', async (req, res) => {
         const plateNumber = req.body.plateNumber;
         if (!plateNumber) {
             return res.status(400).json({ error: true, message: 'Please provide plate number' });
