@@ -1,19 +1,19 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const router = express.Router();
 const jwt = require('jsonwebtoken');
 
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    
+    const router = express.Router();
+
     router.post('/register', async (req, res) => {
         try {
             const { name, username, password } = req.body;
             const hashedPassword = await bcrypt.hash(password, 10);
             
-            const insertUserQuery = 'INSERT INTO admins (name, username, password) VALUES (?, ?, ?)';
-            await pool.promise().execute(insertUserQuery, [name, username, hashedPassword]);
+            const insertUserQuery = 'INSERT INTO admins (name, username, password) VALUES ($1, $2, $3)';
+            await pool.query(insertUserQuery, [name, username, hashedPassword]);
             
             res.status(201).json({ message: 'User Registered successfully' });
         } catch (error) {
@@ -26,8 +26,8 @@ module.exports = (pool, secretKey) => {
         try {
             const { username, password } = req.body;
             
-            const getUserQuery = 'SELECT * FROM admins WHERE username = ?';
-            const [rows] = await pool.promise().execute(getUserQuery, [username]);
+            const getUserQuery = 'SELECT * FROM admins WHERE username = $1';
+            const { rows } = await pool.query(getUserQuery, [username]);
             
             if (rows.length === 0) {
                 return res.status(401).json({ error: 'Invalid username or password' });
@@ -56,7 +56,7 @@ module.exports = (pool, secretKey) => {
                     console.error('Error fetching admins: ', err);
                     res.status(500).json({ message: 'Internal Server Error' });
                 } else {
-                    res.status(200).json(result);
+                    res.status(200).json(result.rows);
                 }
             });
         } catch (error) {
@@ -65,7 +65,6 @@ module.exports = (pool, secretKey) => {
         }
     });
 
-    // Get admin by ID
     router.get('/admins/:id', AuthToken.authenticateToken, (req, res) => {
         const adminId = req.params.id;
         if (!adminId) {
@@ -73,12 +72,12 @@ module.exports = (pool, secretKey) => {
         }
         
         try {
-            pool.query('SELECT * FROM admins WHERE admin_id = ?', adminId, (err, result) => {
+            pool.query('SELECT * FROM admins WHERE admin_id = $1', [adminId], (err, result) => {
                 if (err) {
                     console.error('Error fetching admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
                 } else {
-                    res.status(200).json(result);
+                    res.status(200).json(result.rows);
                 }
             });
         } catch (error) {
@@ -87,8 +86,7 @@ module.exports = (pool, secretKey) => {
         }
     });
     
-    // Update admin
-    router.put('/admins/:id',  async (req, res) => {
+    router.put('/admins/:id', async (req, res) => {
         const adminId = req.params.id;
         const { name, username, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -98,12 +96,12 @@ module.exports = (pool, secretKey) => {
         }
         
         try {
-            pool.query('UPDATE admins SET name = ?, username = ?, password = ? WHERE admin_id = ?', [name, username, hashedPassword, adminId], (err, result) => {
+            pool.query('UPDATE admins SET name = $1, username = $2, password = $3 WHERE admin_id = $4', [name, username, hashedPassword, adminId], (err, result) => {
                 if (err) {
                     console.error('Error updating admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
                 } else {
-                    res.status(200).json(result);
+                    res.status(200).json(result.rows);
                 }
             });
         } catch (error) {
@@ -112,8 +110,7 @@ module.exports = (pool, secretKey) => {
         }
     });
     
-    // Delete admin
-    router.delete('/admins/:id',  (req, res) => {
+    router.delete('/admins/:id', (req, res) => {
         const adminId = req.params.id;
         
         if (!adminId) {
@@ -121,12 +118,12 @@ module.exports = (pool, secretKey) => {
         }
         
         try {
-            pool.query('DELETE FROM admins WHERE admin_id = ?', adminId, (err, result) => {
+            pool.query('DELETE FROM admins WHERE admin_id = $1', [adminId], (err, result) => {
                 if (err) {
                     console.error('Error deleting admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
                 } else {
-                    res.status(200).json(result);
+                    res.status(200).json(result.rows);
                 }
             });
         } catch (error) {

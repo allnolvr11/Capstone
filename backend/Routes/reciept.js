@@ -5,57 +5,34 @@ const jwt = require('jsonwebtoken');
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    
-    router.post('/receipt', (req, res) => {
+    router.post('/receipt', async (req, res) => {
         const plateNumber = req.body.plateNumber;
         if (!plateNumber) {
             return res.status(400).json({ error: true, message: 'Please provide plate number' });
         }
     
         try {
-            // Retrieve parking session details using plate number
-            pool.query('SELECT * FROM parking_sessions WHERE license_plate_number = ? ORDER BY parking_date DESC LIMIT 1', [plateNumber], (err, sessionResult) => {
-                if (err) {
-                    console.error('Error fetching parking session details:', err);
-                    return res.status(500).json({ message: 'Internal Server Error' });
-                }
-                if (sessionResult.length === 0) {
-                    return res.status(404).json({ message: 'No parking session found for the provided plate number' });
-                }
-                const parkingSession = sessionResult[0];
-                
-                // Generate receipt details
-                const parkingNumber = parkingSession.parking_number;
-                const parkingDate = parkingSession.parking_date;
-                const cost = parkingSession.cost;
-                
-                // Insert generated receipt into the receipts table
-                pool.query('INSERT INTO receipts (parking_session_id, parking_number, parking_date, cost) VALUES (?, ?, ?, ?)', [parkingSession.session_id, parkingNumber, parkingDate, cost], (err, insertResult) => {
-                    if (err) {
-                        console.error('Error generating receipt:', err);
-                        return res.status(500).json({ message: 'Internal Server Error' });
-                    }
-                    // Retrieve the inserted receipt
-                    pool.query('SELECT * FROM receipts WHERE receipt_id = ?', [insertResult.insertId], (err, receiptResult) => {
-                        if (err) {
-                            console.error('Error fetching generated receipt:', err);
-                            return res.status(500).json({ message: 'Internal Server Error' });
-                        }
-                        if (receiptResult.length === 0) {
-                            return res.status(404).json({ message: 'Generated receipt not found' });
-                        }
-                        const receipt = receiptResult[0];
-                        return res.status(200).json(receipt);
-                    });
-                });
-            });
+            const sessionResult = await pool.query('SELECT * FROM parking_sessions WHERE license_plate_number = ? ORDER BY parking_date DESC LIMIT 1', [plateNumber]);
+            if (sessionResult.rows.length === 0) {
+                return res.status(404).json({ message: 'No parking session found for the provided plate number' });
+            }
+            const parkingSession = sessionResult.rows[0];
+            
+            const parkingNumber = parkingSession.parking_number;
+            const parkingDate = parkingSession.parking_date;
+            const cost = parkingSession.cost;
+            
+            const insertResult = await pool.query('INSERT INTO receipts (parking_session_id, parking_number, parking_date, cost) VALUES ($1, $2, $3, $4) RETURNING *', [parkingSession.session_id, parkingNumber, parkingDate, cost]);
+            const receipt = insertResult.rows[0];
+            
+            res.status(200).json(receipt);
         } catch (error) {
             console.error('Error generating receipt: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
-    router.delete('/receipt/:id', (req, res) => {
+    router.delete('/receipt/:id', async (req, res) => {
         const receiptId = req.params.id;
         
         if (!receiptId) {
@@ -63,32 +40,20 @@ module.exports = (pool, secretKey) => {
         }
         
         try {
-            pool.query('DELETE FROM receipts WHERE receipt_id = ?', receiptId, (err, result) => {
-                if (err) {
-                    console.error('Error deleting receipt:', err);
-                    res.status(500).json({ message: 'Internal Server Error' });
-                } else {
-                    res.status(200).json({ message: 'Receipt deleted successfully' });
-                }
-            });
+            await pool.query('DELETE FROM receipts WHERE receipt_id = $1', [receiptId]);
+            res.status(200).json({ message: 'Receipt deleted successfully' });
         } catch (error) {
             console.error('Error deleting receipt: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 
-    router.get('/receipts', (req, res) => {
+    router.get('/receipts', async (req, res) => {
         try {
-            pool.query('SELECT * FROM receipts', (err, result) => {
-                if (err) {
-                    console.error('Error fetching receipts:', err);
-                    res.status(500).json({ message: 'Internal Server Error' });
-                } else {
-                    res.status(200).json(result);
-                }
-            });
+            const result = await pool.query('SELECT * FROM receipts');
+            res.status(200).json(result.rows);
         } catch (error) {
-            console.error('Error loading receipts:', error);
+            console.error('Error fetching receipts:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });

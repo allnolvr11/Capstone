@@ -1,4 +1,3 @@
-// ParkingSes.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
@@ -7,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    
     router.post('/park', async (req, res) => {
         try {
             const { plateNumber, vehicleType } = req.body;
@@ -23,8 +21,8 @@ module.exports = (pool, secretKey) => {
             }
             const parkingNumber = await getNextParkingNumber(pool);
             
-            const insertParkingSessionQuery = 'INSERT INTO parking_sessions (license_plate_number, parking_number, vehicle_type, cost) VALUES (?, ?, ?, ?)';
-            await pool.promise().execute(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
+            const insertParkingSessionQuery = 'INSERT INTO parking_sessions (license_plate_number, parking_number, vehicle_type, cost) VALUES ($1, $2, $3, $4)';
+            await pool.query(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
             
             res.status(201).json({ message: 'Parking session created successfully', parkingNumber });
         } catch (error) {
@@ -36,13 +34,12 @@ module.exports = (pool, secretKey) => {
     async function getNextParkingNumber(pool) {
         try {
             const selectMaxParkingNumberQuery = 'SELECT COALESCE(MAX(parking_number), 0) + 1 AS nextParkingNumber FROM parking_sessions';
-            const result = await pool.promise().execute(selectMaxParkingNumberQuery);
-            return result[0][0].nextParkingNumber;
+            const { rows } = await pool.query(selectMaxParkingNumberQuery);
+            return rows[0].nextParkingNumber;
         } catch (error) {
             throw error;
         }
     }
 
-    
     return router;
 };

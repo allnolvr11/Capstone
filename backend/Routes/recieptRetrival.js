@@ -1,4 +1,3 @@
-// recieptRetrival.js
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -6,65 +5,51 @@ const jwt = require('jsonwebtoken');
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    
-    router.post('/retrieveReceipt', (req, res) => {
-        const plateNumber = req.body.plateNumber;
-        if (!plateNumber) {
-            return res.status(400).json({ error: true, message: 'Please provide plate number' });
+    router.post('/retrieveReceipt', async (req, res) => {
+        const sessionId = req.body.sessionId;
+        if (!sessionId) {
+            return res.status(400).json({ error: true, message: 'Please provide session ID' });
         }
-
-        try {   
-            pool.query('SELECT session_id FROM parking_sessions WHERE license_plate_number = ?', [plateNumber], (err, result) => {
-                if (err) {
-                    console.error('Error checking plate number:', err);
-                    res.status(500).json({ message: 'Internal Server Error' });
-                } else {
-                    if (result.length === 0) {
-                        res.status(404).json({ message: 'Plate number not found in parking sessions' });
-                    } else {
-                        const sessionId = result[0].session_id;
-                        pool.query('SELECT receipt_id FROM receipts WHERE parking_session_id = ? AND DATE(parking_date) = CURDATE()', [sessionId], (err, result) => {
-                            if (err) {
-                                console.error('Error checking receipt:', err);
-                                res.status(500).json({ message: 'Internal Server Error' });
-                            } else {
-                                if (result.length === 0) {
-                                    res.status(404).json({ message: 'No receipt found for today' });
-                                } else {
-                                    const receiptId = result[0].receipt_id;
-                                    pool.query('INSERT INTO receipt_retrieval (plate_number, session_id, receipt_id) VALUES (?, ?, ?)', [plateNumber, sessionId, receiptId], (err, result) => {
-                                        if (err) {
-                                            console.error('Error inserting retrieval request:', err);
-                                            res.status(500).json({ message: 'Internal Server Error' });
-                                        } else {
-                                            // Retrieve the receipt after successful retrieval request
-                                            pool.query('SELECT * FROM receipts WHERE receipt_id = ?', [receiptId], (err, result) => {
-                                                if (err) {
-                                                    console.error('Error fetching retrieved receipt:', err);
-                                                    res.status(500).json({ message: 'Internal Server Error' });
-                                                } else {
-                                                    if (result.length === 0) {
-                                                        res.status(404).json({ message: 'Retrieved receipt not found' });
-                                                    } else {
-                                                        const retrievedReceipt = result[0];
-                                                        res.status(200).json(retrievedReceipt);
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                }
-            });
+    
+        try {
+            const result = await pool.query('SELECT * FROM receipt_retrieval WHERE session_id = $1', [sessionId]);
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'No receipt retrieval found for the provided session ID' });
+            }
+            const receiptRetrieval = result.rows[0];
+            
+            res.status(200).json(receiptRetrieval);
         } catch (error) {
-            console.error('Error processing retrieval request: ', error);
+            console.error('Error retrieving receipt: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
-    
+
+    router.delete('/receiptRetrieval/:id', async (req, res) => {
+        const receiptRetrievalId = req.params.id;
+        
+        if (!receiptRetrievalId) {
+            return res.status(400).json({ error: true, message: 'Please provide receipt retrieval ID' });
+        }
+        
+        try {
+            await pool.query('DELETE FROM receipt_retrieval WHERE receipt_retrieval_id = $1', [receiptRetrievalId]);
+            res.status(200).json({ message: 'Receipt retrieval deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting receipt retrieval: ', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
+
+    router.get('/receiptRetrievals', async (req, res) => {
+        try {
+            const result = await pool.query('SELECT * FROM receipt_retrieval');
+            res.status(200).json(result.rows);
+        } catch (error) {
+            console.error('Error fetching receipt retrievals:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
     
     return router;
 };
