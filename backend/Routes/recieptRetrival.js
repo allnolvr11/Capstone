@@ -11,15 +11,15 @@ module.exports = (pool, secretKey) => {
         }
     
         try {
-            const result = await pool.query('SELECT plate_number, parking_session_id, receipt_id, parking_date, cost FROM receipts WHERE plate_number = $1', [plateNumber]);
+            const result = await pool.query('SELECT rr.plate_number, rr.session_id, rr.receipt_id, r.parking_date, r.cost FROM receipt_retrieval rr JOIN receipts r ON rr.receipt_id = r.receipt_id WHERE rr.plate_number = $1', [plateNumber]);
             if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'No parking session found for the provided plate number' });
+                return res.status(404).json({ message: 'No receipt found for the provided plate number' });
             }
-            const parkingSession = result.rows[0];
+            const receipt = result.rows[0];
             
-            res.status(200).json(parkingSession);
+            res.status(200).json(receipt);
         } catch (error) {
-            console.error('Error retrieving session: ', error);
+            console.error('Error retrieving receipt: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
