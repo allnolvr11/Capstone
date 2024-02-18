@@ -4,22 +4,22 @@ const router = express.Router();
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    router.post('/retrieveReceipt', async (req, res) => {
+    router.post('/retrieveSession', async (req, res) => {
         const plateNumber = req.body.plateNumber;
         if (!plateNumber) {
             return res.status(400).json({ error: true, message: 'Please provide plate number' });
         }
     
         try {
-            const result = await pool.query('SELECT * FROM receipt_retrieval WHERE plate_number = $1', [plateNumber]);
+            const result = await pool.query('SELECT retrieval_id, plate_number, session_id, receipt_id, request_id FROM parking_sessions WHERE plate_number = $1', [plateNumber]);
             if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'No receipt retrieval found for the provided plate number' });
+                return res.status(404).json({ message: 'No parking session found for the provided plate number' });
             }
-            const receiptRetrieval = result.rows[0];
+            const parkingSession = result.rows[0];
             
-            res.status(200).json(receiptRetrieval);
+            res.status(200).json(parkingSession);
         } catch (error) {
-            console.error('Error retrieving receipt: ', error);
+            console.error('Error retrieving session: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
