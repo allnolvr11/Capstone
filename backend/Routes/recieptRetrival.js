@@ -5,15 +5,15 @@ const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
     router.post('/retrieveReceipt', async (req, res) => {
-        const sessionId = req.body.sessionId;
-        if (!sessionId) {
-            return res.status(400).json({ error: true, message: 'Please provide session ID' });
+        const plateNumber = req.body.plateNumber;
+        if (!plateNumber) {
+            return res.status(400).json({ error: true, message: 'Please provide plate number' });
         }
     
         try {
-            const result = await pool.query('SELECT * FROM receipt_retrieval WHERE session_id = $1', [sessionId]);
+            const result = await pool.query('SELECT * FROM receipt_retrieval WHERE plate_number = $1', [plateNumber]);
             if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'No receipt retrieval found for the provided session ID' });
+                return res.status(404).json({ message: 'No receipt retrieval found for the provided plate number' });
             }
             const receiptRetrieval = result.rows[0];
             
