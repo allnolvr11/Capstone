@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const pool = require('./Database/database');
-const config = require('./config/config');
+const config = require('./Config/config');
 const secretKey = config.secretKey;
 
 app.use(bodyParser.json());
