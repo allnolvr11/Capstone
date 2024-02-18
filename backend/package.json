@@ -5,7 +5,8 @@
   "main": "Main.js",
   "scripts": {
     "start": "node Main.js",
-    "dev": "nodemon Main.js"
+    "dev": "nodemon Main.js",
+    "postinstall": "npm install bcrypt"
   },
   "keywords": [],
   "author": "",
