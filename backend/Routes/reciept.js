@@ -11,7 +11,7 @@ module.exports = (pool, secretKey) => {
         }
     
         try {
-            const sessionResult = await pool.query('SELECT * FROM parking_sessions WHERE license_plate_number = ? ORDER BY parking_date DESC LIMIT 1', [plateNumber]);
+            const sessionResult = await pool.query('SELECT * FROM parking_sessions WHERE license_plate_number = $1 ORDER BY parking_date DESC LIMIT 1', [plateNumber]);
             if (sessionResult.rows.length === 0) {
                 return res.status(404).json({ message: 'No parking session found for the provided plate number' });
             }

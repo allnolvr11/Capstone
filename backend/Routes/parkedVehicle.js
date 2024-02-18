@@ -6,6 +6,16 @@ const AuthToken = require('../middleware/AuthToken');
 module.exports = (pool, secretKey) => {
     router.post('/parkedvehicles', async (req, res) => {
         try {
+            // Check if parking sessions exist before copying data
+            const checkSessionsQuery = 'SELECT COUNT(*) AS sessionCount FROM parking_sessions';
+            const { rows: sessionCountResult } = await pool.query(checkSessionsQuery);
+            const sessionCount = parseInt(sessionCountResult[0].sessionCount);
+
+            if (sessionCount === 0) {
+                return res.status(400).json({ error: true, message: 'No parking sessions available to copy' });
+            }
+
+            // Insert data into parked_vehicles from parking_sessions
             const copyQuery = `
                 INSERT INTO parked_vehicles (license_plate_number, vehicle_type, cost, parking_number, entry_time)
                 SELECT license_plate_number, vehicle_type, cost, parking_number, parking_date
