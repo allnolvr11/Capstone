@@ -11,7 +11,12 @@ module.exports = (pool, secretKey) => {
         }
     
         try {
-            const result = await pool.query('SELECT rr.plate_number, rr.session_id, rr.receipt_id, r.parking_date, r.cost FROM receipt_retrieval rr JOIN receipts r ON rr.receipt_id = r.receipt_id WHERE rr.plate_number = $1', [plateNumber]);
+            const result = await pool.query(`
+                SELECT rr.retrieval_id, rr.plate_number, rr.session_id, rr.receipt_id, rr.request_date, ps.vehicle_type, ps.parking_number, ps.cost
+                FROM receipt_retrieval rr
+                JOIN parking_sessions ps ON rr.session_id = ps.session_id
+                WHERE rr.plate_number = $1
+            `, [plateNumber]);
             if (result.rows.length === 0) {
                 return res.status(404).json({ message: 'No receipt found for the provided plate number' });
             }
@@ -23,6 +28,7 @@ module.exports = (pool, secretKey) => {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
+    
 
     router.delete('/receiptRetrieval/:id', async (req, res) => {
         const receiptRetrievalId = req.params.id;
