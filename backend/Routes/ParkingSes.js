@@ -19,7 +19,7 @@ module.exports = (pool, secretKey) => {
             }
             const parkingNumber = await getNextParkingNumber(pool);
             
-            const insertParkingSessionQuery = 'INSERT INTO parking_sessions (license_plate_number, parking_number, vehicle_type, cost) VALUES ($1, $2, $3, $4)';
+            const insertParkingSessionQuery = 'INSERT INTO parking_sessions (plate_number, parking_number, vehicle_type, cost) VALUES ($1, $2, $3, $4)';
             await pool.query(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
             
             res.status(201).json({ message: 'Parking session created successfully', parkingNumber });

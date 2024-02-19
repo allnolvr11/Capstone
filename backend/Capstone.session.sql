@@ -10,7 +10,7 @@ CREATE TABLE admins (
 -- Create parking_sessions table
 CREATE TABLE parking_sessions (
     session_id SERIAL PRIMARY KEY,
-    license_plate_number VARCHAR(20) NOT NULL,
+    plate_number VARCHAR(20) NOT NULL,
     parking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     parking_number INT,
     vehicle_type VARCHAR(10) NOT NULL CHECK (vehicle_type IN ('motorcycle', 'car', 'e-bike')), -- Added 'e-bike' as a vehicle type
