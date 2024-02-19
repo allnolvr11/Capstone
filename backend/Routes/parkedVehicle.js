@@ -17,8 +17,8 @@ module.exports = (pool, secretKey) => {
 
             // Insert data into parked_vehicles from parking_sessions
             const copyQuery = `
-                INSERT INTO parked_vehicles (license_plate_number, vehicle_type, cost, parking_number, entry_time)
-                SELECT license_plate_number, vehicle_type, cost, parking_number, parking_date
+                INSERT INTO parked_vehicles (plate_number, vehicle_type, cost, parking_number, entry_time)
+                SELECT plate_number, vehicle_type, cost, parking_number, parking_date
                 FROM parking_sessions`;
                 
             await pool.query(copyQuery);
