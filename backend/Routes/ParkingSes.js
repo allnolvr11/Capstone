@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-const AuthToken = require('../middleware/AuthToken');
-
 module.exports = (pool, secretKey) => {
     router.post('/park', async (req, res) => {
         try {
@@ -12,32 +10,21 @@ module.exports = (pool, secretKey) => {
                 cost = 20.00;
             } else if (vehicleType === 'car') {
                 cost = 40.00;
-            } else if (vehicleType === 'e-bike') { // New condition for e-bikes
+            } else if (vehicleType === 'e-bike') {
                 cost = 30.00;
             } else {
                 return res.status(400).json({ error: 'Invalid vehicle type' });
             }
-            const parkingNumber = await getNextParkingNumber(pool);
             
-            const insertParkingSessionQuery = 'INSERT INTO parking_sessions (plate_number, parking_number, vehicle_type, cost) VALUES ($1, $2, $3, $4)';
-            await pool.query(insertParkingSessionQuery, [plateNumber, parkingNumber, vehicleType, cost]);
+            const insertParkingQuery = 'INSERT INTO parking (parking_number, plate_number, vehicle_type, cost) VALUES (DEFAULT, $1, $2, $3) RETURNING parking_number';
+            const { rows } = await pool.query(insertParkingQuery, [plateNumber, vehicleType, cost]);
             
-            res.status(201).json({ message: 'Parking session created successfully', parkingNumber });
+            res.status(201).json({ message: 'Parking created successfully', parkingNumber: rows[0].parking_number });
         } catch (error) {
-            console.error('Error creating parking session:', error);
+            console.error('Error creating parking:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     });
-
-    async function getNextParkingNumber(pool) {
-        try {
-            const selectMaxParkingNumberQuery = 'SELECT COALESCE(MAX(parking_number), 0) + 1 AS nextParkingNumber FROM parking_sessions';
-            const { rows } = await pool.query(selectMaxParkingNumberQuery);
-            return rows[0].nextParkingNumber;
-        } catch (error) {
-            throw error;
-        }
-    }
 
     return router;
 };

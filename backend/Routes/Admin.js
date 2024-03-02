@@ -1,19 +1,20 @@
 const express = require('express');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const router = express.Router();
 
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    const router = express.Router();
 
+    //register admin
     router.post('/register', async (req, res) => {
         try {
-            const { name, username, password } = req.body;
+            const { username, password } = req.body;
             const hashedPassword = await bcryptjs.hash(password, 10);
             
-            const insertUserQuery = 'INSERT INTO admins (name, username, password) VALUES ($1, $2, $3)';
-            await pool.query(insertUserQuery, [name, username, hashedPassword]);
+            const insertUserQuery = 'INSERT INTO admins (username, password) VALUES ($1, $2)';
+            await pool.query(insertUserQuery, [username, hashedPassword]);
             
             res.status(201).json({ message: 'User Registered successfully' });
         } catch (error) {
@@ -22,6 +23,7 @@ module.exports = (pool, secretKey) => {
         }
     });
 
+    //login admin
     router.post('/login', async (req, res) => {
         try {
             const { username, password } = req.body;
@@ -49,6 +51,7 @@ module.exports = (pool, secretKey) => {
         }
     });
 
+    //get all admins
     router.get('/admins',  (req, res) => {
         try {
             pool.query('SELECT * FROM admins', (err, result) => {
@@ -65,6 +68,7 @@ module.exports = (pool, secretKey) => {
         }
     });
 
+    //get admin by id
     router.get('/admins/:id', AuthToken.authenticateToken, (req, res) => {
         const adminId = req.params.id;
         if (!adminId) {
@@ -85,18 +89,19 @@ module.exports = (pool, secretKey) => {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
-    
+
+    //update admin
     router.put('/admins/:id', async (req, res) => {
         const adminId = req.params.id;
-        const { name, username, password } = req.body;
+        const { username, password } = req.body;
         const hashedPassword = await bcryptjs.hash(password, 10);
         
-        if (!adminId || !name || !username || !hashedPassword) {
+        if (!adminId || !username || !hashedPassword) {
             return res.status(400).json({ error: true, message: 'Provide all necessary information' });
         }
         
         try {
-            pool.query('UPDATE admins SET name = $1, username = $2, password = $3 WHERE admin_id = $4', [name, username, hashedPassword, adminId], (err, result) => {
+            pool.query('UPDATE admins SET username = $1, password = $2 WHERE admin_id = $3', [username, hashedPassword, adminId], (err, result) => {
                 if (err) {
                     console.error('Error updating admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
@@ -109,8 +114,9 @@ module.exports = (pool, secretKey) => {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
-    
-    router.delete('/admins/:id', (req, res) => {
+
+    //delete admin
+    router.delete('/delAdmin/:id', (req, res) => {
         const adminId = req.params.id;
         
         if (!adminId) {
@@ -123,7 +129,7 @@ module.exports = (pool, secretKey) => {
                     console.error('Error deleting admin:', err);
                     res.status(500).json({ message: 'Internal Server Error' });
                 } else {
-                    res.status(200).json(result.rows);
+                    res.status(200).json({ message: 'Admin deleted successfully' });
                 }
             });
         } catch (error) {

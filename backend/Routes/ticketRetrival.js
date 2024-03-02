@@ -4,28 +4,30 @@ const router = express.Router();
 const AuthToken = require('../middleware/AuthToken');
 
 module.exports = (pool, secretKey) => {
-    router.post('/retrieveReceipt', async (req, res) => {
-        const plateNumber = req.body.plateNumber;
-        if (!plateNumber) {
-            return res.status(400).json({ error: true, message: 'Please provide plate number' });
+    router.post('/ticketretrieval', async (req, res) => {
+        const { plate_number } = req.body;
+    
+        if (!plate_number) {
+            return res.status(400).send({ error: true, message: 'Plate number is required' });
         }
     
         try {
-            const result = await pool.query(`
-                SELECT rr.retrieval_id, rr.plate_number, rr.session_id, rr.receipt_id, rr.request_date, ps.vehicle_type, ps.parking_number, ps.cost
-                FROM receipt_retrieval rr
-                JOIN parking_sessions ps ON rr.session_id = ps.session_id
-                WHERE rr.plate_number = $1
-            `, [plateNumber]);
-            if (result.rows.length === 0) {
-                return res.status(404).json({ message: 'No receipt found for the provided plate number' });
+            const ticketResult = await pool.query('SELECT * FROM tickets WHERE plate_number = $1 ORDER BY parking_date DESC LIMIT 1', [plate_number]);
+    
+            if (ticketResult.rowCount === 0) {
+                return res.status(404).send({ message: 'No ticket found for the provided plate number' });
             }
-            const receipt = result.rows[0];
-            
-            res.status(200).json(receipt);
+    
+            const ticket = ticketResult.rows[0];
+    
+            const retrievalResult = await pool.query('INSERT INTO ticket_retrieval (ticket_id, plate_number) VALUES ($1, $2) RETURNING *', 
+            [ticket.ticket_id, ticket.plate_number]);
+            const retrieval = retrievalResult.rows[0];
+    
+            res.status(200).send({ retrieval });
         } catch (error) {
-            console.error('Error retrieving receipt: ', error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            console.error('Error while retrieving ticket: ', error);
+            res.status(500).send({ error: 'Internal Server Error' });
         }
     });
     
