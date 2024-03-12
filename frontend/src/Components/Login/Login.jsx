@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import './loginStyle.css';
 
@@ -26,7 +24,6 @@ const Login = () => {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // const [token, setToken] = useState(localStorage.getItem('token') || '');
 
   const handleLogin = async (e) => {
     try {
@@ -43,13 +40,11 @@ const Login = () => {
 
   return (
     <div className="container">
-      <Row className='vh-100 d-flex justify-content-center align-items-center'>
-        <Col md={8} lg={6} xs={12}>
-          <input type='username' value={username} onChange={(e) => setUsername(e.target.value)}/>
+      <div className="login-container">
+      <input type='username' value={username} onChange={(e) => setUsername(e.target.value)}/>
           <input type='password' value={password} onChange={(e) => setPassword(e.target.value)}/>
           <Button onClick={handleLogin}>Login</Button>
-        </Col>
-      </Row>
+      </div>
     </div>
   );
 };
