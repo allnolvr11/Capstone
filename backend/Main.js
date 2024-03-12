@@ -3,11 +3,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 const pool = require('./Database/database');
 const config = require('./Config/config');
 const secretKey = config.secretKey;
+
+app.use(cors()); // Use cors middleware here
 
 app.use(bodyParser.json());
 
@@ -20,8 +22,6 @@ app.use("/api", adminRoute);
 app.use("/api/parkingSession", parkingSesRoute);
 app.use("/api/tickets", ticketRoute);
 app.use("/api/parkedVehicles", parkedVehiclesRoute);
-
-app.use(cors());
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
