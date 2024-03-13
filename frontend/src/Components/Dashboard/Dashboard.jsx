@@ -1,20 +1,59 @@
-import React from 'react';
-import './dashboardStyle.css';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import Navbar from 'react-bootstrap/Navbar';
+import Container from 'react-bootstrap/Container';
+import 'bootstrap/dist/css/bootstrap.css';
+import Nav from 'react-bootstrap/Nav';
+import Button from 'react-bootstrap/Button';
 
 const Dashboard = () => {
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  /* Verify if User In-Session in LocalStorage */
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = JSON.parse(localStorage.getItem('token'));
+        const decoded_token = jwtDecode(response.data.token);
+        setUser(decoded_token);
+      } catch (error) {
+        navigate("/login");
+      }
+    };
   
-    console.log('Logged out');
+    fetchUser();
+  }, [navigate]);
+
+  /* Performs Logout Method */
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('token');
+      navigate("/login");
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
   };
 
   return (
-    <div>
-      Welcome
-      <button onClick={handleLogout}>Logout</button>
-    </div>
-  )
+    <Navbar bg="primary" variant="dark">
+      <Container>
+        <Navbar.Brand href="#home">React35 Web Application</Navbar.Brand>
+        <Nav className="me-auto">
+          <Nav.Link className="text-decoration-none text-white">Nav1</Nav.Link>
+          <Nav.Link className="text-decoration-none text-white">Nav2</Nav.Link>
+        </Nav>
+        <Navbar.Toggle />
+        <Navbar.Collapse className="justify-content-end">
+          <Navbar.Text>
+            Welcome: {user ? user.id : 'id'} {user ? user.name : 'name'}
+            <Button variant="secondary" onClick={handleLogout}>Logout</Button>
+          </Navbar.Text>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
+  );
 }
 
 export default Dashboard;
