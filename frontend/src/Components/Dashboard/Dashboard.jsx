@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // import useLocation
 import { jwtDecode } from 'jwt-decode';
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button';
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation(); // get the current location
 
   /* Verify if User In-Session in LocalStorage */
   useEffect(() => {
@@ -19,14 +20,17 @@ const Dashboard = () => {
         const decoded_token = jwtDecode(response.data.token);
         setUser(decoded_token);
       } catch (error) {
-        navigate("/login");
+        // only navigate to "/login" if the user is not already there
+        if (location.pathname !== '/login') {
+          navigate("/login");
+        }
       }
     };
   
     fetchUser();
-  }, [navigate]);
+  }, [navigate, location.pathname]); // add location.pathname to the dependency array
 
-  /* Performs Logout Method */
+    /* Performs Logout Method */
   const handleLogout = async () => {
     try {
       localStorage.removeItem('token');

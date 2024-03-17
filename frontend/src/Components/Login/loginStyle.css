@@ -1,9 +1,40 @@
 .container {
     padding: 90px;
-
+    display: flex;
+    justify-content: center;    
 }
 
 .login-container {
     display: flex;
     flex-direction: column;
+    width: 500px;
+}
+
+.item-login {
+    padding-left: 10px;
+    margin-bottom: 10   px;
+    margin-top: 10px;
+    width: 400px;
+    height: 35px;
+    border-radius: 10px;
+    border: 1px solid #000;
+    align-self: center;
+}
+
+.label-login {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+}
+.login-button {
+    width: 50%;
+    display: flex;
+    margin-top: 20px;
+    justify-content: center;
+
 }

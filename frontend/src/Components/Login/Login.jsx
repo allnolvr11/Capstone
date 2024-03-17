@@ -41,9 +41,13 @@ const Login = () => {
   return (
     <div className="container">
       <div className="login-container">
-          <input type='username' value={username} onChange={(e) => setUsername(e.target.value)}/>
-          <input type='password' value={password} onChange={(e) => setPassword(e.target.value)}/>
-          <Button onClick={handleLogin}>Login</Button>
+          <label className='label-login'>Username</label>
+          <input className='item-login' type='username' value={username} onChange={(e) => setUsername(e.target.value)}/>
+          <label className='label-login'>Password</label>
+          <input className='item-login' type='password' value={password} onChange={(e) => setPassword(e.target.value)}/>
+          <div className='button-container'>
+            <Button className='login-button' onClick={handleLogin}>Login</Button>
+          </div>
       </div>
     </div>
   );
