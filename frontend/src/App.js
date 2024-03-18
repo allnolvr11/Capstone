@@ -4,6 +4,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import "bootstrap/dist/css/bootstrap.css";
+import './App.css';
 
 import Dashboard from './Components/Dashboard/Dashboard';
 import Login from './Components/Login/Login';
@@ -13,9 +14,9 @@ const App = () => {
   return (
     
     <Router>
-      <Container>
-        <Row>
-          <Col md={12}>
+      <Container className="app-container">
+        <Row className="app-row">
+          <Col className="app-col">
             <Routes>
               <Route path="/" element={<Login />}/>
               <Route path="/login" element={<Login />}/>
