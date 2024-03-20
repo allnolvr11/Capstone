@@ -39,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div className="container">
+    <div className="login-log">
       <div className="login-container">
           <label className='label-login'>Username</label>
           <input className='item-login' type='username' value={username} onChange={(e) => setUsername(e.target.value)}/>

@@ -1,12 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&display=swap');
 
-.container {
-    display: flex;
-    justify-content: end;
+.login-log {
     height: 100vh;
-    align-items: center;
+    display: flex;
 }
-
 .login-container {
     display: flex;
     flex-direction: column;
