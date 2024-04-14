@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // import useLocation
+import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
@@ -10,9 +10,7 @@ import Button from 'react-bootstrap/Button';
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation(); // get the current location
 
-  /* Verify if User In-Session in LocalStorage */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -20,17 +18,20 @@ const Dashboard = () => {
         const decoded_token = jwtDecode(response.data.token);
         setUser(decoded_token);
       } catch (error) {
-        // only navigate to "/login" if the user is not already there
-        if (location.pathname !== '/login') {
-          navigate("/login");
-        }
+        setUser(null);
       }
     };
-  
-    fetchUser();
-  }, [navigate, location.pathname]); // add location.pathname to the dependency array
 
-    /* Performs Logout Method */
+    fetchUser();
+  }, [navigate]);
+
+  useEffect(() => {
+    // Navigate to "/login" if user is null
+    if (user === null) {
+      navigate("/login");
+    }
+  }, [user, navigate]); // add a new useEffect that depends on user and navigate
+
   const handleLogout = async () => {
     try {
       localStorage.removeItem('token');
