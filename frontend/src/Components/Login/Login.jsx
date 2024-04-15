@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import './loginStyle.css';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const token = sessionStorage.getItem("token");
+    if (token) {
       try {
-        const response = JSON.parse(localStorage.getItem('token'));
-        setUser(response.data);
-        navigate("/dashboard");
+        jwtDecode(token); // validate the token
+        navigate('/dashboard');
       } catch (error) {
-        navigate("/login");
+        sessionStorage.removeItem('token'); // remove invalid token
       }
-    };
-
-    fetchUser();
-  }, []);
-
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     try {
@@ -31,8 +28,15 @@ const Login = () => {
         username,
         password
       });
-      localStorage.setItem('token', JSON.stringify(response.data));
-      navigate('/dashboard');
+      sessionStorage.setItem('token', JSON.stringify(response.data));
+      const token = sessionStorage.getItem("token");
+      try {
+        jwtDecode(token); // validate the token
+        navigate('/dashboard');
+      } catch (error) {
+        sessionStorage.removeItem('token'); // remove invalid token
+        console.error('Invalid token', error);
+      }
     } catch(error) {
       console.error('Login Failed', error);
     }

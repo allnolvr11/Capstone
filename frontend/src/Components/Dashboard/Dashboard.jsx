@@ -14,23 +14,21 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = JSON.parse(localStorage.getItem('token'));
-        const decoded_token = jwtDecode(response.data.token);
-        setUser(decoded_token);
+        const token = localStorage.getItem('token');
+        if (token) {
+          const decoded_token = jwtDecode(token);
+          setUser(decoded_token);
+        } else {
+          throw new Error('No token found');
+        }
       } catch (error) {
-        setUser(null);
+        localStorage.removeItem('token'); // remove invalid token
+        navigate('/login');
       }
     };
 
     fetchUser();
-  }, [navigate]);
-
-  useEffect(() => {
-    // Navigate to "/login" if user is null
-    if (user === null) {
-      navigate("/login");
-    }
-  }, [user, navigate]); // add a new useEffect that depends on user and navigate
+  }, [navigate]); // only re-run the effect if navigate changes
 
   const handleLogout = async () => {
     try {
@@ -40,6 +38,10 @@ const Dashboard = () => {
       console.error('Logout failed', error);
     }
   };
+
+  if (!user) {
+    return null; // or a loading spinner
+  }
 
   return (
     <Navbar bg="primary" variant="dark">
